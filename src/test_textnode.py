@@ -4,6 +4,11 @@ from textnode import TextNode, TextType
 
 
 class TestTextNode(unittest.TestCase):
+    def test_type_compare_false(self):
+        node = TextNode("This is a text node", TextType.BOLD)
+        other_obj = "Just a string"
+        self.assertRaises(TypeError, "Comparison object must be of type TextNode.*")
+
     def test_eq(self):
         node = TextNode("This is a text node", TextType.BOLD)
         node2 = TextNode("This is a text node", TextType.BOLD)

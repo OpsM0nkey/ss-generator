@@ -15,6 +15,9 @@ class TextNode:
         self.url = url
 
     def __eq__(self, other) -> bool:
+        if not isinstance(other, TextNode):
+            raise TypeError(f"Comparison object must be of type TextNode. Received {type(other)}")
+        
         return (
             self.text == other.text and 
             self.text_type == other.text_type and 
