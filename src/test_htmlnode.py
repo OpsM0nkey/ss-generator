@@ -1,6 +1,6 @@
 import unittest
 
-from htmlnode import HTMLNode
+from htmlnode import HTMLNode, LeafNode
 
 class TestHTMLNode(unittest.TestCase):
     def test_htmlnode_create_empty(self):
@@ -48,6 +48,42 @@ class TestHTMLNode(unittest.TestCase):
         self.assertEqual(
             ' href="https://www.google.com" target="_blank"', html_node.props_to_html()
         )
+
+class TestLeafNode(unittest.TestCase):
+    def test_leafnode_create_empty(self):
+        leaf_node = LeafNode()
+        self.assertIsNone(leaf_node.tag)
+        self.assertEqual(leaf_node.value, "")
+        self.assertIsNone(leaf_node.children)
+        self.assertIsNone(leaf_node.props)
+
+    def test_leafnode_no_children(self):
+        props_dict = {"href":"https://www.google.com", "target":"_blank"}
+        leaf_node = LeafNode(None,"basic paragraph", props_dict)
+        self.assertIsNone(leaf_node.children)
+        self.assertEqual(leaf_node.props, props_dict)
+
+    def test_leafnode_value_none(self):
+        leaf_node = LeafNode(None, None)
+        with self.assertRaises(ValueError):
+            leaf_node.to_html()
+    
+    def test_leafnode_value_emptystring(self):
+        leaf_node = LeafNode(None, "")
+        with self.assertRaises(ValueError):
+            leaf_node.to_html()
+
+    def test_leafnode_tohtml_no_tag(self):
+        leaf_node = LeafNode(None,"This is just raw text.", None)
+        self.assertEqual(leaf_node.to_html(), "This is just raw text.")
+
+    def test_leafnode_tag_noprops(self):
+       leaf_node = LeafNode("p","This is a paragraph of text.", None)
+       self.assertEqual(leaf_node.to_html(), "<p>This is a paragraph of text.</p>")
+
+    def test_leafnode_tag_with_props(self):
+       leaf_node = LeafNode("a", "Click me!", {"href": "https://www.google.com"})
+       self.assertEqual(leaf_node.to_html(), '<a href="https://www.google.com">Click me!</a>')
 
     
 if __name__ == "__main__":
