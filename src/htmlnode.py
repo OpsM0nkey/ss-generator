@@ -41,3 +41,6 @@ class LeafNode(HTMLNode):
             output_string = output_string.replace(output_string,f"<{self.tag}{self.props_to_html()}>{output_string}</{self.tag}>")
         
         return output_string
+    
+    def __repr__(self):
+        return f"LeafNode({self.tag}, {self.value}, {self.props})"
