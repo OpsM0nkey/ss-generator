@@ -1,6 +1,6 @@
 import unittest
 
-from htmlnode import HTMLNode, LeafNode
+from htmlnode import HTMLNode, LeafNode, ParentNode
 
 class TestHTMLNode(unittest.TestCase):
     def test_htmlnode_create_empty(self):
@@ -84,6 +84,65 @@ class TestLeafNode(unittest.TestCase):
     def test_leafnode_tag_with_props(self):
        leaf_node = LeafNode("a", "Click me!", {"href": "https://www.google.com"})
        self.assertEqual(leaf_node.to_html(), '<a href="https://www.google.com">Click me!</a>')
+
+class TestParentNode(unittest.TestCase):
+    def test_parentnode_create_empty_errors(self):
+        with self.assertRaises(TypeError):
+            parent_node = ParentNode()
+    
+    def test_parentnode_create_params(self):
+        parent_node = ParentNode("p", LeafNode())
+        self.assertEqual(parent_node.tag, "p")
+        self.assertIsInstance(parent_node.children, LeafNode)
+        self.assertIsNone(parent_node.props)
+
+    def test_parentnode_valueerror_no_tag(self):
+        parent_node = ParentNode(None, LeafNode())
+        with self.assertRaises(ValueError) as cm:
+            parent_node.to_html()
+        raised_exception = cm.exception
+        self.assertEqual(raised_exception.args[0], "Tag cannot be None or empty")
+
+    def test_parentnode_valueerror_no_children(self):
+        parent_node = ParentNode("p", None)
+        with self.assertRaises(ValueError) as cm:
+            parent_node.to_html()
+        raised_exception = cm.exception
+        self.assertEqual(raised_exception.args[0], "ParentNode must include a children property")
+
+    def test_parentnode_recursion_tohtml(self):
+        parent_node = ParentNode(
+                        "p",
+                        [
+                            LeafNode("b", "Bold text"),
+                            LeafNode(None, "Normal text"),
+                            LeafNode("i", "italic text"),
+                            LeafNode(None, "Normal text"),
+                        ],)
+        self.assertEqual(parent_node.to_html(), "<p><b>Bold text</b>Normal text<i>italic text</i>Normal text</p>")
+
+    def test_parentnode_recursion_includes_parents(self):
+        parent_node = ParentNode(
+                        "p",
+                        [
+                            LeafNode("b", "Bold text"),
+                            LeafNode(None, "Normal text"),
+                            LeafNode("i", "italic text"),
+                            ParentNode("p", [
+                                LeafNode(None, "Normal text")
+                            ]),
+                            LeafNode(None, "Normal text"),
+                        ],)
+        self.assertEqual(parent_node.to_html(), "<p><b>Bold text</b>Normal text<i>italic text</i><p>Normal text</p>Normal text</p>")
+    
+    def test_to_html_with_grandchildren(self):
+        grandchild_node = LeafNode("b", "grandchild")
+        child_node = ParentNode("span", [grandchild_node])
+        parent_node = ParentNode("div", [child_node])
+        self.assertEqual(
+            parent_node.to_html(),
+            "<div><span><b>grandchild</b></span></div>",
+        )
 
     
 if __name__ == "__main__":
