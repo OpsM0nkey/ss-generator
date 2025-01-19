@@ -57,10 +57,6 @@ class ParentNode(HTMLNode):
         
         output_text = ""
         for node in self.children:
-            # if node.children == None:
-            #     return node.to_html()
-            # else:
-            #     output_text += node.to_html()
             output_text += node.to_html()
         return f"<{self.tag}{self.props_to_html()}>{output_text}</{self.tag}>"
 

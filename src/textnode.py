@@ -1,4 +1,5 @@
 from enum import Enum
+from htmlnode import LeafNode
 
 class TextType(Enum):
     TEXT = "text"
@@ -26,3 +27,31 @@ class TextNode:
     
     def __repr__(self):
         return f"TextNode({self.text}, {self.text_type.value}, {self.url})"
+    
+def text_node_to_html_node(text_node: TextNode):
+
+    if not isinstance(text_node, TextNode):
+            raise TypeError(f"Input parameter must be of type TextNode. Received {type(text_node)}")
+    
+    match text_node.text_type:
+        case TextType.TEXT:
+            return LeafNode(None, text_node.text, None)
+        case TextType.BOLD:
+            return LeafNode("b", text_node.text, None)
+        case TextType.ITALIC:
+            return LeafNode("i", text_node.text, None)
+        case TextType.CODE:
+            return LeafNode("code", text_node.text, None)
+        case TextType.LINK:
+            properties = {
+                "href": text_node.url
+            }
+            return LeafNode("a", text_node.text, properties)
+        case TextType.IMAGE:
+            properties = {
+                "src": text_node.url,
+                "alt": text_node.text
+            }
+            return LeafNode("img", "", properties)
+        case _:
+            raise ValueError(f"Input text_type [{text_node.text_type}] not supported.")

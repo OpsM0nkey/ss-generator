@@ -1,4 +1,4 @@
-from textnode import *
+from textnode import TextNode, TextType
 
 def main():
     print (TextNode("Dummy Text Here", TextType.TEXT, "https:dummyurl.org"))
