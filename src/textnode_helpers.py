@@ -1,3 +1,5 @@
+import re
+
 from textnode import TextNode, TextType
 
 def is_textnode(input_node):
@@ -33,3 +35,16 @@ def split_nodes_delimiter(old_nodes: list, delimiter: str, text_type: TextType) 
     
     return nodes_list
             
+def extract_markdown_images(text) -> tuple:
+    if len(text) == 0:
+        raise Exception("Input text string cannot be null or emtpy")
+
+    image_data = re.findall(r"!\[([^\[\]]*)\]\(([^\(\)]*)\)", text)    
+    return image_data
+
+def extract_markdown_links(text):
+   if len(text) == 0:
+        raise Exception("Input text string cannot be null or emtpy")
+
+   link_data = re.findall(r"\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
+   return link_data
