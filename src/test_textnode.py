@@ -59,15 +59,6 @@ class TestTextNodeToHMLNode(unittest.TestCase):
             "Input parameter must be of type TextNode. Received <class 'str'>"
         )
 
-    def test_raises_non_supported_texttype(self):
-        with self.assertRaises(AttributeError) as cm:
-            text_node_to_html_node(TextNode("Normal Text", TextType.RANDOM, None))
-        raised_exception = cm.exception
-        self.assertEqual(
-            raised_exception.args[0], 
-            "type object 'TextType' has no attribute 'RANDOM'"
-        )
-
     def test_raises_ValueError_non_supported_texttype(self):
         with self.assertRaises(ValueError) as cm:
             text_node_to_html_node(TextNode("Normal Text", "Squiggly", None))
