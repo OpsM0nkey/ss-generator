@@ -1,6 +1,15 @@
 import re
+from enum import Enum
+from textnode import TextNode, TextType, text_node_to_html_node
+from htmlnode import HTMLNode, ParentNode, LeafNode
 
-from textnode import TextNode, TextType
+class BlockType(Enum):
+    PARAGRAPH = "paragraph"
+    HEADING = "heading"
+    CODE = "code"
+    QUOTE = "quote"
+    UNORDERED_LIST = "unordered_list"
+    ORDERED_LIST = "ordered_list"
 
 def is_textnode(input_node):
     return isinstance(input_node, TextNode)
@@ -141,3 +150,153 @@ def markdown_to_blocks(markdown: str) -> list:
 
     return final_block_list
 
+
+def block_is_ordered_list(markdown: str) -> bool:
+    # split the block
+    md_split = markdown.split("\n")
+
+    # if the first line doesn't start with "1. ", it's not an ordered list.
+    if not md_split[0].startswith("1. "):
+        return False
+    
+    # keep track of the counter
+    line_counter = 1
+    for line in md_split:
+        if line.startswith(f"{line_counter}. "):
+            line_counter += 1
+            continue
+        else:
+            return False
+    
+    return True
+
+def block_is_unordered_list(markdown: str) -> bool:
+    # split the block and check each line starts with "- "
+    md_split = markdown.split("\n")
+
+    for line in md_split:
+        if not line.startswith("- "):
+            return False
+    
+    return True
+
+def block_is_quote(markdown: str) -> bool:
+    # split the block and check if each line starts with "> "
+    md_split = markdown.split("\n")
+
+    for line in md_split:
+        if not line.startswith(">"):
+            return False
+
+    return True
+
+def block_to_block_type(markdown: str) -> BlockType:
+
+    # switch through the markdown block to determine the blocktype:
+    # trim to remove leading and trailing whitespace
+    markdown = markdown.strip()
+    match markdown:
+        # check the tuple for the 1-6 valid header combinations (including whitespace after "#")
+        case markdown if markdown.startswith(("# ", "## ", "### ", "#### ", "##### ", "###### ")):
+            return BlockType.HEADING
+        case markdown if markdown.startswith("```") and markdown.endswith("```"):
+            return BlockType.CODE
+        case markdown if block_is_quote(markdown):
+            return BlockType.QUOTE
+        case markdown if block_is_unordered_list(markdown):
+            return BlockType.UNORDERED_LIST
+        case markdown if block_is_ordered_list(markdown):
+            return BlockType.ORDERED_LIST
+        case _:
+            return BlockType.PARAGRAPH
+        
+def convert_newline_to_space(text: str) -> str:
+    return text.replace("\n", " ")
+        
+def text_to_children(text: str) -> list:
+    child_nodes = []
+    text_nodes = text_to_textnodes(convert_newline_to_space(text))
+
+
+    # for each node, convert to leafnode
+    for node in text_nodes:
+        child_nodes.append(text_node_to_html_node(node))
+    
+    return child_nodes
+
+def get_html_heading_type(heading: str) -> str:
+
+    # determine the heading level
+    heading_level = heading.count("#")
+    return f"h{heading_level}"
+
+def clean_unordered_list_item(item: str) -> str:
+    return item.lstrip("- ").strip()
+
+def get_unordered_list_items(list_items: list) -> list:
+
+    # each item is a leafNode, process and return a <li> element using a list comprehension
+    return [
+        ParentNode("li", text_to_children(clean_unordered_list_item(item)))
+        for item in list_items
+    ]
+
+def clean_ordered_list_item(item: str) -> str:
+    return re.sub(r"^\d+\.\s+", "", item.lstrip())
+
+def get_ordered_list_items(list_items: list) -> list:
+    return [
+        ParentNode("li", text_to_children(clean_ordered_list_item(item)))
+        for item in list_items
+    ]
+
+def new_html_node(block: str, block_type: BlockType) -> HTMLNode:
+
+    match block_type:
+        case BlockType.PARAGRAPH:
+            child_nodes = text_to_children(block)
+            html_node = ParentNode("p", child_nodes)
+        
+        case BlockType.HEADING:
+            child_nodes = text_to_children(block)
+            # determine the heading level
+            heading_level = get_html_heading_type(block)
+            html_node = ParentNode(heading_level, child_nodes)
+
+        case BlockType.QUOTE:
+            child_nodes = text_to_children(block)
+            html_node = ParentNode("blockquote", child_nodes)
+
+        case BlockType.UNORDERED_LIST:
+            # need to split by newlines, then iteratively call text_to_children
+            child_nodes = get_unordered_list_items(block.split("\n"))
+            html_node = ParentNode("ul", child_nodes)
+        
+        case BlockType.ORDERED_LIST:
+            child_nodes = get_ordered_list_items(block.split("\n"))
+            html_node = ParentNode("ol", child_nodes)
+
+        case BlockType.CODE:
+            text_node = TextNode((block.strip("`")).lstrip(), TextType.CODE)
+            child_nodes = text_node_to_html_node(text_node)
+            html_node = ParentNode("pre", [child_nodes])
+
+    return html_node
+        
+def markdown_to_html_node(markdown) -> HTMLNode:
+    """
+        converts a full markdown document into a single parent HTMLNode. That one parent HTMLNode should
+        contain many child HTMLNode objects representing the nested elements.
+    """
+
+    # split full markdown into blocks:
+    md_blocks = markdown_to_blocks(markdown)
+
+    block_nodes = []
+
+    for block in md_blocks: 
+        block_type = block_to_block_type(block)
+        html_node = new_html_node(block, block_type)
+        block_nodes.append(html_node)
+
+    return ParentNode("div", block_nodes)

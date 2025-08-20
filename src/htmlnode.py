@@ -1,5 +1,5 @@
 class HTMLNode():
-    def __init__(self, tag: str = None, value: str = None, children = None, props: dict = None):
+    def __init__(self, tag: str = None, value: str = None, children: list = None, props: dict = None):
         # TODO: maybe add in validation for children (should be of type HTMLNode??)
 
         self.tag = tag
@@ -46,7 +46,7 @@ class LeafNode(HTMLNode):
         return f"LeafNode({self.tag}, {self.value}, {self.props})"
     
 class ParentNode(HTMLNode):
-    def __init__(self, tag: str, children: HTMLNode, props: dict = None):
+    def __init__(self, tag: str, children: list["HTMLNode"], props: dict = None):
         super().__init__(tag, None, children, props)
 
     def to_html(self):
