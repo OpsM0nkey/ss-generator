@@ -2,12 +2,14 @@ import os
 import shutil
 
 def copy_static_content(src: str, dest: str) -> None:
-    # get absolute paths for each
-    src_full = os.path.abspath(src)
-    dest_full = os.path.abspath(dest)
+    
     # first, make sure the source directory exists
     if not os.path.exists(src):
         raise ValueError(f"Source path [{src}] not found")
+    
+    # get absolute paths for each
+    src_full = os.path.abspath(src)
+    dest_full = os.path.abspath(dest)
     
     # first delete dest
     if os.path.exists(dest_full):

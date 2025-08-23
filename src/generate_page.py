@@ -3,6 +3,8 @@ from textnode_helpers import (
     extract_title,
     markdown_to_html_node
 )
+from pathlib import Path
+
 def generate_page(from_path: str, template_path: str, dest_path: str) -> None:
 
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
@@ -35,3 +37,24 @@ def generate_page(from_path: str, template_path: str, dest_path: str) -> None:
 
     with open(dest_path, 'w') as file:
         file.write(page_html)
+
+
+def generate_pages_recursive(dir_path_content: str, template_path: str, dest_dir_path: str) -> None:
+    # first, make sure the source directory exists
+    if not os.path.exists(dir_path_content):
+        raise ValueError(f"Source path [{dir_path_content}] not found")
+
+    # get absolute paths for each
+    content_full = os.path.abspath(dir_path_content)
+    dest_full = os.path.abspath(dest_dir_path)
+
+    for item in os.listdir(content_full):
+        src_item_path = os.path.join(content_full, item)
+        dest_item_path = os.path.join(dest_full, item)
+
+        if not os.path.isfile(src_item_path):
+            generate_pages_recursive(src_item_path, template_path, dest_item_path)
+        
+        # use generate_page to generate the html and copy to the target
+        if Path(src_item_path).suffix.lower() == ".md":
+            generate_page(src_item_path, template_path, dest_item_path.replace(".md", ".html"))
