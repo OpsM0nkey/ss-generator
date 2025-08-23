@@ -3,6 +3,7 @@ import unittest
 from textnode_helpers import split_nodes_delimiter, is_textnode, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link, text_to_textnodes, markdown_to_blocks, block_to_block_type
 from textnode_helpers import BlockType
 from textnode_helpers import markdown_to_html_node
+from textnode_helpers import extract_title
 from textnode import TextNode, TextType, text_node_to_html_node
 from htmlnode import LeafNode
 
@@ -702,6 +703,34 @@ the **same** even with inline stuff
         self.assertEqual(
             html,
             "<div><ul><li>Item with some <i>italic</i> text</li><li>Item with some <b>bold</b> text</li><li>Item with some <code>code</code> text</li></ul></div>",
+        )
+
+class TestExtractTitle(unittest.TestCase):
+
+    def test_extract_title(self):
+        md = """
+# Tolkien Fan Club
+
+![JRR Tolkien sitting](/images/tolkien.png)
+
+Here's the deal, **I like Tolkien**.
+
+> "I am in fact a Hobbit in all but size."
+>
+> -- J.R.R. Tolkien
+     
+"""
+        title = extract_title(md)
+        self.assertEqual(title, "Tolkien Fan Club")
+
+    def test_extract_title_no_h1(self):
+        md = "This is not a title"
+        with self.assertRaises(ValueError) as cm:
+            extract_title(md)
+        raised_exception = cm.exception
+        self.assertEqual(
+            raised_exception.args[0],
+            "No H1 header [#] found in provided markdown"
         )
 
 if __name__ == "__main__":

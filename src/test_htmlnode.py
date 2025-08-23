@@ -67,11 +67,6 @@ class TestLeafNode(unittest.TestCase):
         leaf_node = LeafNode(None, None)
         with self.assertRaises(ValueError):
             leaf_node.to_html()
-    
-    def test_leafnode_value_emptystring(self):
-        leaf_node = LeafNode(None, "")
-        with self.assertRaises(ValueError):
-            leaf_node.to_html()
 
     def test_leafnode_tohtml_no_tag(self):
         leaf_node = LeafNode(None,"This is just raw text.", None)

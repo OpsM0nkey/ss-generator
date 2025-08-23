@@ -32,15 +32,18 @@ class LeafNode(HTMLNode):
         super().__init__(tag, value, None, props)
 
     def to_html(self):
-        if self.value == None or len(self.value) == 0:
-            raise ValueError("Value cannot be empty.")
-        
-        output_string = self.value
+        if self.value == None:
+            raise ValueError("Value cannot be None.")
+    
+        if self.tag is None:
+            return self.value
 
-        if self.tag != None:
-            output_string = output_string.replace(output_string,f"<{self.tag}{self.props_to_html()}>{output_string}</{self.tag}>")
+        return f"<{self.tag}{self.props_to_html()}>{self.value}</{self.tag}>"
+
+        # if self.tag != None:
+        #     output_string = output_string.replace(output_string,f"<{self.tag}{self.props_to_html()}>{output_string}</{self.tag}>")
         
-        return output_string
+        # return output_string
     
     def __repr__(self):
         return f"LeafNode({self.tag}, {self.value}, {self.props})"

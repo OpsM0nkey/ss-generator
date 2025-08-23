@@ -258,13 +258,16 @@ def new_html_node(block: str, block_type: BlockType) -> HTMLNode:
             html_node = ParentNode("p", child_nodes)
         
         case BlockType.HEADING:
-            child_nodes = text_to_children(block)
+            text_content = block.lstrip("#").strip()
+            child_nodes = text_to_children(text_content)
             # determine the heading level
             heading_level = get_html_heading_type(block)
             html_node = ParentNode(heading_level, child_nodes)
 
         case BlockType.QUOTE:
-            child_nodes = text_to_children(block)
+            block_lines = [line.lstrip("> ").strip() for line in block.split("\n")]
+            clean_block = " ".join(block_lines)
+            child_nodes = text_to_children(clean_block)
             html_node = ParentNode("blockquote", child_nodes)
 
         case BlockType.UNORDERED_LIST:
@@ -300,3 +303,17 @@ def markdown_to_html_node(markdown) -> HTMLNode:
         block_nodes.append(html_node)
 
     return ParentNode("div", block_nodes)
+
+def extract_title(markdown: str) -> str:
+    """
+        Extracts the title from the markdown string. The title is the first line of the markdown.
+    """
+
+    md_split = markdown.split("\n")
+
+    for line in md_split:
+        if line.startswith("# "): 
+            return line[2:].strip()
+        
+    # otherwise, raise exception
+    raise ValueError("No H1 header [#] found in provided markdown")
