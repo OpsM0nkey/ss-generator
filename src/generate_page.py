@@ -5,7 +5,7 @@ from textnode_helpers import (
 )
 from pathlib import Path
 
-def generate_page(from_path: str, template_path: str, dest_path: str) -> None:
+def generate_page(basepath: str, from_path: str, template_path: str, dest_path: str) -> None:
 
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
 
@@ -30,6 +30,8 @@ def generate_page(from_path: str, template_path: str, dest_path: str) -> None:
     content_title = extract_title(from_content)
 
     page_html = (template_content.replace("{{ Content }}", html_content)).replace("{{ Title }}", content_title)
+    # replace any href and src references to include the basepath
+    page_html = (page_html.replace('href="/', f'href="{basepath}')).replace('src="/', f'src="{basepath}')
 
     # check if the destination directories exist, if not create them
     if not os.path.exists(os.path.dirname(dest_path)):
@@ -39,7 +41,7 @@ def generate_page(from_path: str, template_path: str, dest_path: str) -> None:
         file.write(page_html)
 
 
-def generate_pages_recursive(dir_path_content: str, template_path: str, dest_dir_path: str) -> None:
+def generate_pages_recursive(basepath: str, dir_path_content: str, template_path: str, dest_dir_path: str) -> None:
     # first, make sure the source directory exists
     if not os.path.exists(dir_path_content):
         raise ValueError(f"Source path [{dir_path_content}] not found")
@@ -53,8 +55,8 @@ def generate_pages_recursive(dir_path_content: str, template_path: str, dest_dir
         dest_item_path = os.path.join(dest_full, item)
 
         if not os.path.isfile(src_item_path):
-            generate_pages_recursive(src_item_path, template_path, dest_item_path)
-        
+            generate_pages_recursive(basepath=basepath, dir_path_content=src_item_path, template_path=template_path, dest_dir_path=dest_item_path)
+
         # use generate_page to generate the html and copy to the target
         if Path(src_item_path).suffix.lower() == ".md":
-            generate_page(src_item_path, template_path, dest_item_path.replace(".md", ".html"))
+            generate_page(basepath=basepath, from_path=src_item_path, template_path=template_path, dest_path=dest_item_path.replace(".md", ".html"))
