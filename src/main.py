@@ -5,9 +5,8 @@ from generate_page import generate_page, generate_pages_recursive
 
 def main():
     # check provided arguments to set the base path, if none, set to "/"
-    # basepath = "/" if not sys.argv[1] else sys.argv[1]
     if len(sys.argv) > 1:
-        basepath = f"{sys.argv[1]}/"
+        basepath = sys.argv[1]
     else:
         basepath = "/"
 

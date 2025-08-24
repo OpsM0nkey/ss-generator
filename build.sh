@@ -1,1 +1,1 @@
-python3 src/main.py "ss-generator"
+python3 src/main.py "/ss-generator/"
